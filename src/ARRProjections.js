@@ -11,8 +11,6 @@ const dataRows = [
   { label: 'Churn', key: 'churnARR' },
   { label: 'Quarterly Margin ARR TOTAL', key: 'quarterlyMarginARRTotal' },
   { label: 'Ending Margin ARR', key: 'endingMarginARR' },
-  { label: 'Yearly Margin ARR', key: 'yearlyMarginARR' },
-  { label: 'Progression of Total Margin ARR', key: 'progressionTotalMarginARR' },
 ];
 
 const ARRProjections = ({ appState, setAppState }) => {
@@ -94,6 +92,17 @@ const ARRProjections = ({ appState, setAppState }) => {
       event.target.value = "0";
     }
   };
+
+  const formatCurrency = (value) => {
+    if (value === undefined || value === null) return '-';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
+
   const styles = {
     container: {
       padding: '20px',
@@ -148,12 +157,31 @@ const ARRProjections = ({ appState, setAppState }) => {
             {quarters.map((quarter) => (
               <td style={styles.td} key={quarter}>
                 {appState.calculatedData[quarter]?.[key] !== undefined
-                  ? appState.calculatedData[quarter][key].toFixed(2)  // Format to two decimal places
+                  ? formatCurrency(appState.calculatedData[quarter][key])
                   : '-'}
               </td>
             ))}
           </tr> ))}
-
+          <tr>
+            <td style={styles.td}>Progression of Total Margin ARR</td>
+            {quarters.map((quarter) => (
+              <td style={styles.td} key={quarter}>
+                {appState.calculatedData[quarter]?.progressionTotalMarginARR !== undefined
+                  ? formatCurrency(appState.calculatedData[quarter].progressionTotalMarginARR)
+                  : '-'}
+              </td>
+            ))}
+          </tr>
+          <tr>
+            <td style={styles.td}>Yearly Margin ARR</td>
+            {quarters.map((quarter, index) => (
+              <td style={styles.td} key={quarter}>
+                {index % 4 === 3
+                  ? formatCurrency(appState.calculatedData[`FY ${2025 + Math.floor(index / 4)}`]?.yearlyMarginARR)
+                  : ''}
+              </td>
+            ))}
+          </tr>
         </tbody>
 
         {/* Inputs Section */}
