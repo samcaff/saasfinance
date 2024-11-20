@@ -36,7 +36,6 @@ const ARRProjections = ({ appState, setAppState }) => {
     return initialData;
   };
 
-  const [localQuarterlyData, setLocalQuarterlyData] = useState(initializeQuarterlyData);
   const [calculatedData, setCalculatedData] = useState({});
 
   useEffect(() => {
@@ -55,32 +54,59 @@ const ARRProjections = ({ appState, setAppState }) => {
     setAppState
   ]);
 
+  useEffect(() => {
+    const updatedData = { ...appState.localQuarterlyData };
+    const quarters = Object.keys(updatedData);
+  
+    // Ensure every selected product has a data entry in every quarter
+    quarters.forEach((quarter) => {
+      appState.selectedProducts.forEach((product) => {
+        if (!updatedData[quarter][product]) {
+          updatedData[quarter][product] = { newDeals: 0 }; // Initialize missing product data
+        }
+      });
+    });
+  
+    // Update localQuarterlyData in appState
+    setAppState((prevState) => ({
+      ...prevState,
+      localQuarterlyData: updatedData,
+    }));
+  }, [appState.selectedProducts, setAppState]);
+  
+
   const handleInputChange = (quarter, field, product = null) => (event) => {
-    let value = Number(event.target.value);
+  let value = Number(event.target.value);
 
-    // Ensure Expansion, Downgrade, and Churn values are limited between 0-100
-    if ((field === 'expansion' || field === 'downgrade' || field === 'churn') && (value < 0 || value > 100)) {
-      value = Math.max(0, Math.min(100, value));
-    }
+  // Ensure Expansion, Downgrade, and Churn values are limited between 0-100
+  if ((field === 'expansion' || field === 'downgrade' || field === 'churn') && (value < 0 || value > 100)) {
+    value = Math.max(0, Math.min(100, value));
+  }
 
-    setLocalQuarterlyData((prevData) => {
-      const updatedData = {
-        ...prevData,
-        [quarter]: {
-          ...prevData[quarter],
-          ...(product
-            ? { [product]: { ...prevData[quarter][product], [field]: value } }
-            : { [field]: value }),
-        },
-      };
-      setAppState((prevState) => ({
+  setAppState((prevState) => {
+    const updatedData = {
+      ...prevState.localQuarterlyData,
+      [quarter]: {
+        ...prevState.localQuarterlyData[quarter],
+        ...(product
+          ? { [product]: { ...prevState.localQuarterlyData[quarter][product], [field]: value } }
+          : { [field]: value }),
+      },
+    };
+
+      return {
         ...prevState,
-        quarterlyData: updatedData,
-        calculatedData: calculateARRProjections({ ...prevState, quarterlyData: updatedData }),
-      }));
-      return updatedData;
+        localQuarterlyData: updatedData,
+        quarterlyData: updatedData, // Sync for calculations
+        calculatedData: calculateARRProjections({
+          ...prevState,
+          quarterlyData: updatedData,
+        }),
+      };
     });
   };
+
+
   const handleFocus = (event) => {
     if (event.target.value === "0") {
       event.target.value = "";
@@ -224,7 +250,7 @@ const ARRProjections = ({ appState, setAppState }) => {
                 <td style={styles.td} key={quarter}>
                   <input
                     type="number"
-                    value={localQuarterlyData[quarter]?.[product]?.newDeals || 0}
+                    value={appState.localQuarterlyData[quarter]?.[product]?.newDeals || 0}
                     onChange={handleInputChange(quarter, 'newDeals', product)}
                     style={styles.input}
                     onFocus={handleFocus}
@@ -244,7 +270,7 @@ const ARRProjections = ({ appState, setAppState }) => {
                 <td style={styles.td} key={quarter}>
                   <input
                     type="number"
-                    value={localQuarterlyData[quarter]?.[field] || 0}
+                    value={appState.localQuarterlyData[quarter]?.[field] || 0}
                     onChange={handleInputChange(quarter, field)}
                     style={styles.input}
                     min="0"

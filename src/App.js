@@ -5,6 +5,23 @@ import calculateARRProjections from './calculateARRProjections';
 import './App.css';
 
 const App = () => {
+  const initializeQuarterlyData = () => {
+    const initialData = {};
+    const quarters = [
+      'Q1 2025', 'Q2 2025', 'Q3 2025', 'Q4 2025',
+      'Q1 2026', 'Q2 2026', 'Q3 2026', 'Q4 2026',
+      'Q1 2027', 'Q2 2027', 'Q3 2027', 'Q4 2027',
+      'Q1 2028', 'Q2 2028', 'Q3 2028', 'Q4 2028',
+    ];
+    quarters.forEach((quarter) => {
+      initialData[quarter] = {
+        expansion: 0,
+        downgrade: 0,
+        churn: 0,
+      };
+    });
+    return initialData;
+  };
   const [activeTab, setActiveTab] = useState('productSelection');
   const [appState, setAppState] = useState({
     selectedProducts: [],
@@ -12,6 +29,7 @@ const App = () => {
     servicePercentages: {},
     globalMargins: { productMargin: 0, serviceMargin: 0 },
     quarterlyData: {},
+    localQuarterlyData: initializeQuarterlyData(),
     calculatedData: {},
     arpu: {},
     professionalServices: {},

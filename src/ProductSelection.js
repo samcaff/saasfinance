@@ -56,10 +56,26 @@ const ProductSelection = ({ appState, setAppState }) => {
         let newSelectedProducts = [...prevState.selectedProducts];
         let newProductFactors = { ...prevState.productFactors };
         let newServicePercentages = { ...prevState.servicePercentages };
-    
+        let newLocalQuarterlyData = { ...prevState.localQuarterlyData };
+
+
         if (selectedProduct !== "None") {
         newSelectedProducts[index] = selectedProduct;
-    
+          
+        Object.keys(newLocalQuarterlyData).forEach((quarter) => {
+          if (!newLocalQuarterlyData[quarter][selectedProduct]) {
+            newLocalQuarterlyData[quarter][selectedProduct] = { newDeals: 0 };
+          }
+          if (!newLocalQuarterlyData[quarter].expansion) {
+            newLocalQuarterlyData[quarter].expansion = 0;
+          }
+          if (!newLocalQuarterlyData[quarter].downgrade) {
+            newLocalQuarterlyData[quarter].downgrade = 0;
+          }
+          if (!newLocalQuarterlyData[quarter].churn) {
+            newLocalQuarterlyData[quarter].churn = 0;
+          }
+        });
         // Initialize if not already set
         if (!newProductFactors[selectedProduct]) {
             newProductFactors[selectedProduct] = {};
@@ -69,8 +85,14 @@ const ProductSelection = ({ appState, setAppState }) => {
         }
         } else {
         newSelectedProducts[index] = null;
+
+          Object.keys(newLocalQuarterlyData).forEach((quarter)=>{
+            delete newLocalQuarterlyData[quarter][selectedProduct];
+          });
         }
-    
+        
+
+
         newSelectedProducts = newSelectedProducts.filter(Boolean);
     
         return {
