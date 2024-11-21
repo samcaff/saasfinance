@@ -1,4 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import {
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+  ResponsiveContainer,
+
+} from 'recharts';
 
 const productDetails = {
   "Teamcenter": { salesCycle: "8-12 months", licenseSize: 140000,
@@ -28,6 +44,7 @@ const productDetails = {
   "Opcenter X": { salesCycle: "3-6 months", licenseSize: 60000,
       serviceFactors: [0.4, 0.7, 0.7, 0.04, 0.7, 0.2, 0.1, 0.5, 0] }
 };
+
 
 const ProductSelection = ({ appState, setAppState }) => {
   const products = Object.keys(productDetails);
@@ -194,6 +211,7 @@ const ProductSelection = ({ appState, setAppState }) => {
       totalMargin: formatNumber(totalMargin),
     };
   };
+
   const handleFocus = (event) => {
     if (event.target.value === "0") {
       event.target.value = "";
@@ -205,6 +223,62 @@ const ProductSelection = ({ appState, setAppState }) => {
       event.target.value = "0";
     }
   };
+
+
+  const defaultProgressionData = [
+    { quarter: 'Q1 2025', value: 0 },
+    { quarter: 'Q2 2025', value: 0 },
+    { quarter: 'Q3 2025', value: 0 },
+    { quarter: 'Q4 2025', value: 0 },
+  ];
+  
+  const defaultYearlyMarginARRData = [
+    { year: 'FY 2025', value: 0 },
+    { year: 'FY 2026', value: 0 },
+    { year: 'FY 2027', value: 0 },
+    { year: 'FY 2028', value: 0 },
+  ];
+
+  const progressionData = appState && Object.keys(appState.calculatedData || {}).length > 0
+  ? Object.keys(appState.calculatedData)
+      .filter((key) => key.startsWith('Q'))
+      .map((quarter) => ({
+        quarter,
+        value: appState.calculatedData[quarter]?.progressionTotalMarginARR || 0,
+      }))
+  : defaultProgressionData;
+
+const yearlyMarginARRData = appState && Object.keys(appState.calculatedData || {}).length > 0
+  ? ['FY 2025', 'FY 2026', 'FY 2027', 'FY 2028'].map((year) => ({
+      year,
+      value: appState.calculatedData[year]?.yearlyMarginARR || 0,
+    }))
+  : defaultYearlyMarginARRData;
+// Pie Chart : Service/License margin ratio logic
+const totalServiceMargin = appState.selectedProducts.reduce((acc, product) => {
+  const productData = calculateProductData(product);
+  return acc + parseFloat(productData.serviceMargin.replace(/[^0-9.-]+/g, '')); // Remove formatting and sum
+}, 0);
+
+const totalLicenseMargin = appState.selectedProducts.reduce((acc, product) => {
+  const productData = calculateProductData(product);
+  return acc + parseFloat(productData.licenseMargin.replace(/[^0-9.-]+/g, '')); // Remove formatting and sum
+}, 0);
+
+  const totalMargin = totalServiceMargin + totalLicenseMargin;
+  const licenseServicePieData =
+  totalMargin > 0
+    ? [
+        { name: 'Service Margin', value: (totalServiceMargin / totalMargin) * 100 },
+        { name: 'License Margin', value: (totalLicenseMargin / totalMargin) * 100 },
+      ]
+    : [
+        { name: 'Service Margin', value: 0 },
+        { name: 'License Margin', value: 0 },
+      ];
+
+
+
   const styles = {
     container: {
       padding: '20px',
@@ -218,6 +292,24 @@ const ProductSelection = ({ appState, setAppState }) => {
     mainContent: {
       display: 'flex',
       alignItems: 'flex-start',
+    },
+    contentArea: {
+      display: 'flex',
+      flexDirection: 'column',
+      flex: 1,
+    },
+    graphsContainer: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '20px',
+      marginTop: '20px',
+      marginLeft: '20px',
+    },
+    graph: {
+      flex: '1',
+      padding: '10px',
+      backgroundColor: '#2e2e2e',
+      borderRadius: '8px',
     },
     sidebar: {
       backgroundColor: '#333',
@@ -306,6 +398,13 @@ const ProductSelection = ({ appState, setAppState }) => {
       padding: '8px',
       textAlign: 'center',
     },
+    graphTitles: {
+      fontSize: '18px',
+      fontWeight: 'bold',
+      textAlign: 'center',
+      marginBottom: '10px',
+      color: '#333',
+    }
   };
 
   const selectedProducts = [selectedProduct1, selectedProduct2, selectedProduct3].filter(
@@ -393,39 +492,94 @@ const ProductSelection = ({ appState, setAppState }) => {
             </div>
           </div>
         </div>
-
-        <div style={styles.tableContainer}>
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                <th style={styles.tableHeader}>Product</th>
-                <th style={styles.tableHeader}>Sales Cycle</th>
-                <th style={styles.tableHeader}>Total Service %</th>
-                <th style={styles.tableHeader}>Avg License Size</th>
-                <th style={styles.tableHeader}>Avg Service Size</th>
-                <th style={styles.tableHeader}>License Margin</th>
-                <th style={styles.tableHeader}>Service Margin</th>
-                <th style={styles.tableHeader}>Total Margin</th>
-              </tr>
-            </thead>
-            <tbody>
-              {selectedProducts.map((product) => {
-                const data = calculateProductData(product);
-                return (
-                  <tr key={product} style={styles.tableRow}>
-                    <td style={styles.tableData}>{product}</td>
-                    <td style={styles.tableData}>{data.salesCycle}</td>
-                    <td style={styles.tableData}>{data.totalServicePercentage}</td>
-                    <td style={styles.tableData}>${data.avgLicenseSize}</td>
-                    <td style={styles.tableData}>${data.avgServiceSize}</td>
-                    <td style={styles.tableData}>${data.licenseMargin}</td>
-                    <td style={styles.tableData}>${data.serviceMargin}</td>
-                    <td style={styles.tableData}>${data.totalMargin}</td>
+          <div style={styles.contentArea}>
+            <div style={styles.tableContainer}>
+              <table style={styles.table}>
+                <thead>
+                  <tr>
+                    <th style={styles.tableHeader}>Product</th>
+                    <th style={styles.tableHeader}>Sales Cycle</th>
+                    <th style={styles.tableHeader}>Total Service %</th>
+                    <th style={styles.tableHeader}>Avg License Size</th>
+                    <th style={styles.tableHeader}>Avg Service Size</th>
+                    <th style={styles.tableHeader}>License Margin</th>
+                    <th style={styles.tableHeader}>Service Margin</th>
+                    <th style={styles.tableHeader}>Total Margin</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                </thead>
+                <tbody>
+                  {selectedProducts.map((product) => {
+                    const data = calculateProductData(product);
+                    return (
+                      <tr key={product} style={styles.tableRow}>
+                        <td style={styles.tableData}>{product}</td>
+                        <td style={styles.tableData}>{data.salesCycle}</td>
+                        <td style={styles.tableData}>{data.totalServicePercentage}</td>
+                        <td style={styles.tableData}>${data.avgLicenseSize}</td>
+                        <td style={styles.tableData}>${data.avgServiceSize}</td>
+                        <td style={styles.tableData}>${data.licenseMargin}</td>
+                        <td style={styles.tableData}>${data.serviceMargin}</td>
+                        <td style={styles.tableData}>${data.totalMargin}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          
+          {/* Graphs */}
+          <div style={styles.graphsContainer}>
+            <div style={styles.graph}>
+              <h3 style={styles.graphTitle}>Progression of Total Margin ARR</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={progressionData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="quarter" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="value" stroke="#8884d8" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div style={styles.graph}>
+            <h3 style={styles.graphTitle}>Yearly Margin ARR</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={yearlyMarginARRData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="year" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="value" fill="#82ca9d" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div style={styles.graph}>
+            <h3 style={styles.graphTitle}>% License & Service Margin</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={licenseServicePieData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    fill="#8884d8"
+                    label={({ name, value }) => `${name}: ${value.toFixed(2)}%`}
+                  >
+                    <Cell key="Service Margin" fill="#FF8042" />
+                    <Cell key="License Margin" fill="#0088FE" />
+                  </Pie>
+                  <Tooltip formatter={(value) => `${value.toFixed(2)}%`} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
       </div>
     </div>
