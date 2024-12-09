@@ -1,13 +1,42 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: #1e1e1e;
+  background-color: #020027;
 }
 
 .App {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
 }
 
+.nav {
+  display: flex;
+  justify-content: flex-start;
+  position: sticky;
+  top: 0;
+  background-color: #24233c;
+  z-index: 1000;
+  width: max-content;
+  min-width: 100%;
+
+}
+.nav button {
+  background-color: #30CBCB;
+  color: #020027;
+  border: none;
+  padding: 10px 20px;
+  margin-right: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 5px;
+  white-space: nowrap; 
+}
+.nav button.active {
+  background-color: #34FFBA;
+}
 .App-logo {
   height: 40vmin;
   pointer-events: none;
@@ -20,7 +49,7 @@ body {
 }
 
 .App-header {
-  background-color: #282c34;
+  background-color: #020027;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -42,3 +71,30 @@ body {
     transform: rotate(360deg);
   }
 }
+
+/* Scrollbar container */
+::-webkit-scrollbar {
+  width: 12px; /* Adjust the width for vertical scrollbar */
+  height: 8px; /* Adjust the height for horizontal scrollbar */
+}
+
+/* Scrollbar track */
+::-webkit-scrollbar-track {
+  background: #020027; /* Match background color */
+  border-radius: 10px;
+}
+
+/* Scrollbar thumb */
+::-webkit-scrollbar-thumb {
+  background-color: #555; /* Color of the scrollbar */
+  border-radius: 10px;
+  border: 2px solid #020027; /* Adds padding around the thumb */
+}
+
+/* Scrollbar thumb hover */
+::-webkit-scrollbar-thumb:hover {
+  background-color: #777; /* Highlight on hover */
+}
+
+
+

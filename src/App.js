@@ -43,31 +43,33 @@ const App = () => {
     appContainer: {
       padding: '0',
       margin: '0',
-      backgroundColor: '#1e1e1e',
+      backgroundColor: '#020027',
       minHeight: '100vh',
       color: '#f1f1f1',
       fontFamily: 'Arial, sans-serif',
     },
     nav: {
       display: 'flex',
-      backgroundColor: '#333',
+      backgroundColor: '#24233C',
       padding: '10px',
     },
     navButton: {
-      backgroundColor: '#444',
-      color: '#f1f1f1',
+      backgroundColor: '#30CBCB',
+      color: '#020027',
       border: 'none',
       padding: '10px 20px',
       marginRight: '10px',
       cursor: 'pointer',
       fontSize: '16px',
+      borderRadius: '5px',
     },
     activeNavButton: {
-      backgroundColor: '#1e90ff',
+      backgroundColor: '#34FFBA',
     },
     tabContent: {
       padding: '20px',
     },
+    
   };
 
   return (

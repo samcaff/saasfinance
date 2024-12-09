@@ -15,6 +15,10 @@ import {
   ResponsiveContainer,
 
 } from 'recharts';
+import { Checkbox, FormControlLabel } from '@mui/material';
+import { TextField, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+
+
 
 const productDetails = {
   "Teamcenter": { salesCycle: "8-12 months", licenseSize: 140000,
@@ -214,13 +218,27 @@ const ProductSelection = ({ appState, setAppState }) => {
 
   const handleFocus = (event) => {
     if (event.target.value === "0") {
-      event.target.value = "";
+      const inputName = event.target.name; // Get the name of the field
+      setAppState((prevState) => ({
+        ...prevState,
+        globalMargins: {
+          ...prevState.globalMargins,
+          [inputName]: "",
+        },
+      }));
     }
   };
 
   const handleBlur = (event) => {
     if (event.target.value === "") {
-      event.target.value = "0";
+      const inputName = event.target.name; // Get the name of the field
+      setAppState((prevState) => ({
+        ...prevState,
+        globalMargins: {
+          ...prevState.globalMargins,
+          [inputName]: "0",
+        },
+      }));
     }
   };
 
@@ -308,43 +326,43 @@ const totalLicenseMargin = appState.selectedProducts.reduce((acc, product) => {
     graph: {
       flex: '1',
       padding: '10px',
-      backgroundColor: '#2e2e2e',
+      backgroundColor: '#24233C',
       borderRadius: '8px',
     },
     sidebar: {
-      backgroundColor: '#333',
+      backgroundColor: '#24233C',
       padding: '20px',
       borderRadius: '8px',
       width: '320px',
       display: 'flex',
       flexDirection: 'column',
-      gap: '20px',
+      gap: '10px',
       flexShrink: 0,
     },
     marginContainer: {
       display: 'flex',
+      flexDirection: 'column',
       gap: '20px',
-      marginBottom: '20px',
     },
     marginInputContainer: {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      backgroundColor: '#333',
       padding: '10px',
       borderRadius: '5px',
+      gap: '5px',
     },
     marginLabel: {
       marginBottom: '5px',
       fontSize: '14px',
-      color: '#aaa',
+      color: '#9A99A9',
     },
     marginInput: {
       width: '60px',
       padding: '5px',
       borderRadius: '3px',
       border: '1px solid #555',
-      backgroundColor: '#222',
+      backgroundColor: '#05173A',
       color: '#f1f1f1',
       textAlign: 'center',
       outline: 'none',
@@ -356,7 +374,7 @@ const totalLicenseMargin = appState.selectedProducts.reduce((acc, product) => {
     },
     dropdown: {
       padding: '10px',
-      backgroundColor: '#333',
+      backgroundColor: '#05173A',
       color: '#f1f1f1',
       border: '1px solid #555',
       borderRadius: '5px',
@@ -369,14 +387,14 @@ const totalLicenseMargin = appState.selectedProducts.reduce((acc, product) => {
       color: '#f1f1f1',
     },
     productFactors: {
-      backgroundColor: '#2a2a2a',
+      backgroundColor: '#16152E',
       padding: '10px',
       borderRadius: '8px',
     },
     tableContainer: {
       flex: '1',
       padding: '10px',
-      backgroundColor: '#2e2e2e',
+      backgroundColor: '#24233C',
       color: '#f1f1f1',
       borderRadius: '8px',
       overflowX: 'auto',
@@ -415,62 +433,121 @@ const totalLicenseMargin = appState.selectedProducts.reduce((acc, product) => {
     <div style={styles.container}>
       <div style={styles.mainContent}>
         <div style={styles.sidebar}>
-          <div style={styles.marginContainer}>
-            {/* Margin Inputs */}
-            <div style={styles.marginInputContainer}>
-              <label style={styles.marginLabel}>Product Margin (%)</label>
-              <input
-                type="number"
-                value={appState.globalMargins.productMargin}
-                onChange={handleGlobalMarginChange('productMargin')}
-                min="0"
-                max="100"
-                style={styles.marginInput}
-                onBlur={handleBlur}
-                onFocus={handleFocus}
-              />
-            </div>
-            <div style={styles.marginInputContainer}>
-              <label style={styles.marginLabel}>Service Margin (%)</label>
-              <input
-                type="number"
-                value={appState.globalMargins.serviceMargin}
-                onChange={handleGlobalMarginChange('serviceMargin')}
-                min="0"
-                max="100"
-                style={styles.marginInput}
-                onBlur={handleBlur}
-                onFocus={handleFocus}
-              />
-            </div>
+        <div style={styles.marginContainer}>
+          {/* Product Margin Input */}
+          <div style={styles.marginInputContainer}>
+            <TextField
+            name="productMargin"
+              label="Product Margin (%)" // Replaces the label
+              type="number"
+              value={appState.globalMargins.productMargin}
+              onChange={handleGlobalMarginChange('productMargin')}
+              inputProps={{ min: 0, max: 100 }} // Ensure valid numeric input
+              onBlur={handleBlur}
+              onFocus={handleFocus}
+              fullWidth // Makes the input take up the full container width
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset':{
+                    borderColor: '#f1f1f1',
+                  },
+                  backgroundColor: '#16152E', // Background color
+                  color: '#f1f1f1', // Text color
+                },
+                '& .MuiInputLabel-root': {
+                  color: '#f1f1f1', // Label color
+                },
+                '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#020027', // Border color on focus
+                },
+              }}
+            />
           </div>
+
+          {/* Service Margin Input */}
+          <div style={styles.marginInputContainer}>
+            <TextField
+              name="serviceMargin"
+              label="Service Margin (%)"
+              type="number"
+              value={appState.globalMargins.serviceMargin}
+              onChange={handleGlobalMarginChange('serviceMargin')}
+              inputProps={{ min: 0, max: 100 }}
+              onBlur={handleBlur}
+              onFocus={handleFocus}
+              fullWidth
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset':{
+                    borderColor: '#f1f1f1',
+                  },
+                  backgroundColor: '#16152E', // Background color
+                  color: '#f1f1f1', // Text color
+                },
+                '& .MuiInputLabel-root': {
+                  color: '#f1f1f1', // Label color
+                },
+                '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#020027', // Border color on focus
+                },
+              }}
+            />
+          </div>
+        </div>
 
           <div>
             <h1>Select Products</h1>
-            <div style={styles.dropdownContainer}>
-              {[selectedProduct1, selectedProduct2, selectedProduct3].map((selectedProduct, index) => (
-                <select
-                  key={index}
-                  onChange={handleSelectChange(
-                    index === 0 ? setSelectedProduct1 :
-                    index === 1 ? setSelectedProduct2 : setSelectedProduct3,
-                    index
-                  )}
-                  value={selectedProduct}
-                  style={styles.dropdown}
-                >
-                  <option value="None">None</option>
-                  {products.map((product) => (
-                    <option
-                      key={product}
-                      value={product}
-                      disabled={selectedProducts.includes(product)}
-                    >
-                      {product}
-                    </option>
-                  ))}
-                </select>
-              ))}
+              <div style={styles.dropdownContainer}>
+                {[selectedProduct1, selectedProduct2, selectedProduct3].map((selectedProduct, index) => (
+                  <FormControl fullWidth key={index} sx={{ marginBottom: '10px', minWidth: 200 }}>
+                    <InputLabel 
+                    id={`select-label-${index}`}
+                    sx={{
+                      color: '#f1f1f1',
+                    }}
+                    >Select Product {index + 1}
+                    </InputLabel>
+                      <Select
+                        labelId={`select-label-${index}`}
+                        value={selectedProduct}
+                        onChange={handleSelectChange(
+                          index === 0 ? setSelectedProduct1 :
+                          index === 1 ? setSelectedProduct2 : setSelectedProduct3,
+                          index
+                        )}
+                        label={`Select Product ${index + 1}`}
+                        sx={{
+                          '& .MuiSelect-select': {
+                            backgroundColor: '#16152E', // Background color of dropdown
+                            color: '#f1f1f1', // Text color
+                          },
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#f1f1f1', // Default border color
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#020027', // Hover border color
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#1e90ff', // Focused border color
+                          },
+                          '& .MuiSvgIcon-root': {
+                            color: '#f1f1f1', // Dropdown arrow icon color
+                          },
+                        }}
+                      >
+                        <MenuItem value="None">None</MenuItem>
+                        {products.map((product) => (
+                          <MenuItem
+                            key={product}
+                            value={product}
+                            disabled={selectedProducts.includes(product)}
+                          >
+                            {product}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                  </FormControl>
+                ))}
             </div>
 
             <div style={styles.factorContainer}>
@@ -478,15 +555,28 @@ const totalLicenseMargin = appState.selectedProducts.reduce((acc, product) => {
                 <div key={product} style={styles.productFactors}>
                   <h3>{product}</h3>
                   {factors.map((factor, index) => (
-                    <label key={index} style={{ display: 'block', marginBottom: '5px' }}>
-                      <input
-                        type="checkbox"
-                        checked={!!appState.productFactors[product]?.[index]}
-                        onChange={handleFactorChange(product, index)}
-                      />{' '}
-                      {factor}
-                    </label>
+                    <FormControlLabel
+                      key={index}
+                      control={
+                        <Checkbox
+                          checked={!!appState.productFactors[product]?.[index]}
+                          onChange={handleFactorChange(product, index)}
+                          sx={{
+                            color: '#555', // Unchecked color
+                            '&.Mui-checked': {
+                              color: '#1e90ff', // Checked color
+                            },
+                          }}
+                        />
+                      }
+                      label={factor}
+                      sx={{
+                        marginBottom: '5px',
+                        color: '#f1f1f1', // Label color
+                      }}
+                    />
                   ))}
+
                 </div>
               ))}
             </div>

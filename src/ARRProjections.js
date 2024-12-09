@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import calculateARRProjections from './calculateARRProjections';
+import { TextField } from '@mui/material';
 
 const dataRows = [
   { label: 'Beginning Margin ARR', key: 'beginningMarginARR' },
@@ -109,13 +110,25 @@ const ARRProjections = ({ appState, setAppState }) => {
 
   const handleFocus = (event) => {
     if (event.target.value === "0") {
-      event.target.value = "";
+      const name = event.target.getAttribute("name"); // Identify field
+      setAppState((prevState) => {
+        const updatedData = { ...prevState.localQuarterlyData };
+        // Set the field value to an empty string in appState
+        updatedData[name] = "";
+        return { ...prevState, localQuarterlyData: updatedData };
+      });
     }
   };
 
   const handleBlur = (event) => {
     if (event.target.value === "") {
-      event.target.value = "0";
+      const name = event.target.getAttribute("name"); // Identify field
+      setAppState((prevState) => {
+        const updatedData = { ...prevState.localQuarterlyData };
+        // Reset field value in appState
+        updatedData[name] = 0;
+        return { ...prevState, localQuarterlyData: updatedData };
+      });
     }
   };
 
@@ -130,10 +143,19 @@ const ARRProjections = ({ appState, setAppState }) => {
   };
 
   const styles = {
+    responsiveContainer: {
+      maxHeight: '80vh', // Restrict table height to 80% of the viewport height
+      overflow: 'auto', // Enable scrolling for overflow content
+      border: '1px solid #555', // Optional: Add a border for visibility
+      borderRadius: '8px',
+      backgroundColor: '#16152E', // Match table color
+      padding: '10px',
+    },
     container: {
       padding: '20px',
-      backgroundColor: '#1e1e1e',
+      backgroundColor: '#16152e',
       color: '#f1f1f1',
+      borderRadius: '8px',
     },
     table: {
       width: '100%',
@@ -144,7 +166,8 @@ const ARRProjections = ({ appState, setAppState }) => {
     th: {
       border: '1px solid #555',
       padding: '8px',
-      backgroundColor: '#333',
+      backgroundColor: '#24233C',
+      whiteSpace: 'nowrap',
     },
     td: {
       border: '1px solid #555',
@@ -165,126 +188,209 @@ const ARRProjections = ({ appState, setAppState }) => {
 
   return (
     <div style={styles.container}>
-      <table style={styles.table}>
-        {/* Header Row for FY and Quarters */}
-        <thead>
-          <tr>
-            <th style={styles.th}>ARR ($)</th>
-            {quarters.map((quarter) => (
-              <th style={styles.th} key={quarter}>{quarter}</th>
-            ))}
-          </tr>
-        </thead>
-        {/* Summary Margin ARR Section */}
-        <tbody>
-        {dataRows.map(({ label, key }) => (
-          <tr key={key}>
-            <td style={styles.td}>{label}</td>
-            {quarters.map((quarter) => (
-              <td style={styles.td} key={quarter}>
-                {appState.calculatedData[quarter]?.[key] !== undefined
-                  ? formatCurrency(appState.calculatedData[quarter][key])
-                  : '-'}
-              </td>
-            ))}
-          </tr> ))}
-          <tr>
-            <td style={styles.td}>Progression of Total Margin ARR</td>
-            {quarters.map((quarter) => (
-              <td style={styles.td} key={quarter}>
-                {appState.calculatedData[quarter]?.progressionTotalMarginARR !== undefined
-                  ? formatCurrency(appState.calculatedData[quarter].progressionTotalMarginARR)
-                  : '-'}
-              </td>
-            ))}
-          </tr>
-          <tr>
-            <td style={styles.td}>Yearly Margin ARR</td>
-            {quarters.map((quarter, index) => (
-              <td style={styles.td} key={quarter}>
-                {index % 4 === 3
-                  ? formatCurrency(appState.calculatedData[`FY ${2025 + Math.floor(index / 4)}`]?.yearlyMarginARR)
-                  : ''}
-              </td>
-            ))}
-          </tr>
-        </tbody>
-
-        {/* Inputs Section */}
-        <thead>
-          <tr>
-            <th style={styles.th}>Inputs</th>
-            {quarters.map((quarter) => (
-              <th style={styles.th} key={quarter}>{quarter}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {/* ARPU and Professional Services per Product */}
-          {products.map((product) => (
-            <React.Fragment key={product}>
-              <tr>
-                <td style={styles.td}>ARPU (Quarter) - {product}</td>
-                {quarters.map((quarter) => (
-                  <td style={styles.td} key={quarter}>
-                    {(appState.arpu[product] || 0).toFixed(2)} {/* Format to two decimal places */}
-                  </td>
-                ))}
-              </tr>
-              <tr>
-                <td style={styles.td}>Professional Services (Quarter) per deal - {product}</td>
-                {quarters.map((quarter) => (
-                  <td style={styles.td} key={quarter}>
-                    {(appState.professionalServices[product] || 0).toFixed(2)} {/* Format to two decimal places */}
-                  </td>
-                ))}
-              </tr>
-            </React.Fragment>
-          ))}
-
-          {/* New Deals per Quarter Inputs */}
-          {products.map((product) => (
-            <tr key={`new-deals-${product}`}>
-              <td style={styles.td}>New Deals per quarter (#) - {product}</td>
-              {quarters.map((quarter) => (
-                <td style={styles.td} key={quarter}>
-                  <input
-                    type="number"
-                    value={appState.localQuarterlyData[quarter]?.[product]?.newDeals || 0}
-                    onChange={handleInputChange(quarter, 'newDeals', product)}
-                    style={styles.input}
-                    onFocus={handleFocus}
-                    onBlur={handleBlur}
-                    min="0"
-                  />
+      <div style={styles.responsiveContainer}>
+        <table style={styles.table}>
+          {/* Header Row for FY and Quarters */}
+          <thead>
+            <tr>
+              <th style={styles.th}>ARR ($)</th>
+              {quarters.map((quarter, index) => (
+                <th style={{
+                  ...styles.th,
+                  borderRight: (index+1)%4 === 0 && (index+1)!=16 ? '4px double #999' : '1px solid #555',
+                  borderLeft: index===0 ? '4px double #999' : 'none',
+                }} key={quarter}>{quarter}</th>
+              ))}
+            </tr>
+          </thead>
+          {/* Summary Margin ARR Section */}
+          <tbody>
+          {dataRows.map(({ label, key }) => (
+            <tr key={key}>
+              <td style={styles.td}>{label}</td>
+              {quarters.map((quarter, index) => (
+                <td style={{
+                  ...styles.td,
+                  borderRight: (index+1)%4 === 0 && (index+1)!=16 ? '4px double #999' : '1px solid #555',
+                  borderLeft: index===0 ? '4px double #999' : 'none',
+                  }} key={quarter}>
+                  {appState.calculatedData[quarter]?.[key] !== undefined
+                    ? formatCurrency(appState.calculatedData[quarter][key])
+                    : '-'}
+                </td>
+              ))}
+            </tr> ))}
+            <tr>
+              <td style={styles.td}>Progression of Total Margin ARR</td>
+              {quarters.map((quarter,index) => (
+                <td style={{
+                  ...styles.td,
+                  borderRight: (index+1)%4 === 0 && (index+1)!=16 ? '4px double #999' : '1px solid #555',
+                  borderLeft: index===0 ? '4px double #999' : 'none',
+                }} key={quarter}>
+                  {appState.calculatedData[quarter]?.progressionTotalMarginARR !== undefined
+                    ? formatCurrency(appState.calculatedData[quarter].progressionTotalMarginARR)
+                    : '-'}
                 </td>
               ))}
             </tr>
-          ))}
-
-          {/* Expansion, Downgrade, and Churn % Inputs */}
-          {['expansion', 'downgrade', 'churn'].map((field) => (
-            <tr key={field}>
-              <td style={styles.td}>{`${field.charAt(0).toUpperCase() + field.slice(1)} %`}</td>
-              {quarters.map((quarter) => (
-                <td style={styles.td} key={quarter}>
-                  <input
-                    type="number"
-                    value={appState.localQuarterlyData[quarter]?.[field] || 0}
-                    onChange={handleInputChange(quarter, field)}
-                    style={styles.input}
-                    min="0"
-                    max="100"
-                    onFocus={handleFocus}
-                    onBlur={handleBlur}
-                  />
-                  %
+            <tr>
+              <td style={styles.td}>Yearly Margin ARR</td>
+              {quarters.map((quarter, index) => (
+                <td style={{
+                  ...styles.td,
+                  borderRight: (index+1)%4 === 0 && (index+1)!=16 ? '4px double #999' : '1px solid #555',
+                  borderLeft: index===0 ? '4px double #999' : 'none',
+                }} key={quarter}>
+                  {index % 4 === 3
+                    ? formatCurrency(appState.calculatedData[`FY ${2025 + Math.floor(index / 4)}`]?.yearlyMarginARR)
+                    : ''}
                 </td>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </tbody>
+
+          {/* Inputs Section */}
+          <thead>
+            <tr>
+              <th style={styles.th}>Inputs</th>
+              {quarters.map((quarter,index) => (
+                <th style={{
+                  ...styles.th,
+                  borderRight: (index+1)%4 === 0 && (index+1)!=16 ? '4px double #999' : '1px solid #555',
+                  borderLeft: index===0 ? '4px double #999' : 'none',
+                }} key={quarter}>{quarter}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {/* ARPU and Professional Services per Product */}
+            {products.map((product) => (
+              <React.Fragment key={product}>
+                <tr>
+                  <td style={styles.td}>ARPU (Quarter) - {product}</td>
+                  {quarters.map((quarter,index) => (
+                    <td style={{
+                      ...styles.td,
+                      borderRight: (index+1)%4 === 0 && (index+1)!=16 ? '4px double #999' : '1px solid #555',
+                      borderLeft: index===0 ? '4px double #999' : 'none',
+                    }} key={quarter}>
+                      {(appState.arpu[product] || 0).toFixed(2)} {/* Format to two decimal places */}
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td style={styles.td}>Professional Services (Quarter) per deal - {product}</td>
+                  {quarters.map((quarter,index) => (
+                    <td style={{
+                      ...styles.td,
+                      borderRight: (index+1)%4 === 0 && (index+1)!=16 ? '4px double #999' : '1px solid #555',
+                      borderLeft: index===0 ? '4px double #999' : 'none',
+                    }} key={quarter}>
+                      {(appState.professionalServices[product] || 0).toFixed(2)} {/* Format to two decimal places */}
+                    </td>
+                  ))}
+                </tr>
+              </React.Fragment>
+            ))}
+
+            {/* New Deals per Quarter Inputs */}
+            {products.map((product) => (
+              <tr key={`new-deals-${product}`}>
+                <td style={styles.td}>New Deals per quarter (#) - {product}</td>
+                {quarters.map((quarter, index) => (
+                  <td
+                    style={{
+                      ...styles.td,
+                      borderRight: (index + 1) % 4 === 0 && (index + 1) !== 16 ? '4px double #999' : '1px solid #555',
+                      borderLeft: index === 0 ? '4px double #999' : 'none',
+                    }}
+                    key={quarter}
+                  >
+                    <TextField
+                      
+                      type="number"
+                      value={appState.localQuarterlyData[quarter]?.[product]?.newDeals || 0}
+                      onChange={handleInputChange(quarter, 'newDeals', product)}
+                      variant="standard"
+                      inputProps={{
+                        min: 0,
+                        style: { textAlign: 'center'},
+                      }}
+                      onFocus={handleFocus}
+                      onBlur={handleBlur}
+                      sx={{
+                        '& .MuiInputBase-root': {
+                          backgroundColor: '#24233C',
+                          color: '#f1f1f1',
+                          borderRadius: '4px',
+                        },
+                        '& .MuiInput-underline:before': {
+                          borderBottom: '1px solid #555',
+                        },
+                        '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
+                          borderBottom: '1px solid #777',
+                        },
+                        '& .MuiInput-underline:after': {
+                          borderBottom: '2px solid #1e90ff',
+                        },
+                      }}
+                    />
+                  </td>
+                ))}
+              </tr>
+            ))}
+
+            {/* Expansion, Downgrade, and Churn % Inputs */}
+            {['expansion', 'downgrade', 'churn'].map((field) => (
+              <tr key={field}>
+                <td style={styles.td}>{`${field.charAt(0).toUpperCase() + field.slice(1)} %`}</td>
+                {quarters.map((quarter, index) => (
+                  <td
+                    style={{
+                      ...styles.td,
+                      borderRight: (index + 1) % 4 === 0 && (index + 1) !== 16 ? '4px double #999' : '1px solid #555',
+                      borderLeft: index === 0 ? '4px double #999' : 'none',
+                    }}
+                    key={quarter}
+                  >
+                    <TextField
+                      type="number"
+                      value={appState.localQuarterlyData[quarter]?.[field] || 0}
+                      onChange={handleInputChange(quarter, field)}
+                      variant="standard"
+                      inputProps={{
+                        min: 0,
+                        max: 100,
+                        style: { textAlign: 'center'},
+                      }}
+                      onFocus={handleFocus}
+                      onBlur={handleBlur}
+                      sx={{
+                        '& .MuiInputBase-root': {
+                          backgroundColor: '#24233C',
+                          color: '#f1f1f1',
+                          borderRadius: '4px',
+                        },
+                        '& .MuiInput-underline:before': {
+                          borderBottom: '1px solid #555',
+                        },
+                        '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
+                          borderBottom: '1px solid #777',
+                        },
+                        '& .MuiInput-underline:after': {
+                          borderBottom: '2px solid #1e90ff',
+                        },
+                      }}
+                    />
+                    %
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

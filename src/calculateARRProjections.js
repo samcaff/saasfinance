@@ -5,7 +5,6 @@ const calculateARRProjections = (state) => {
     const quarters = Object.keys(quarterlyData);
   
     let progressionTotalMarginARR = 0; // Running total for progression of total margin ARR
-    let previousEndingMarginARR=0;
 
     quarters.forEach((quarter) => {
       calculatedData[quarter] = {};
@@ -38,7 +37,10 @@ const calculateARRProjections = (state) => {
       const newArrMarginTotal = newArrMarginLicenses + newArrMarginServices;
   
       // Calculate Beginning Margin ARR based on previous quarters
-      const beginningMarginARR = previousEndingMarginARR;
+      const beginningMarginARR = quarters
+        .slice(0, quarters.indexOf(quarter)) // Get all previous quarters
+        .slice(-12) // Take the last 12 quarters
+        .reduce((acc, prevQuarter) => acc + (calculatedData[prevQuarter]?.quarterlyMarginARRTotal || 0), 0);
   
       // Calculate Expansion, Downgrade, and Churn ARR
       const expansionARR = beginningMarginARR * (expansion / 100);
@@ -65,7 +67,6 @@ const calculateARRProjections = (state) => {
         endingMarginARR,
         progressionTotalMarginARR,
       };
-      previousEndingMarginARR = endingMarginARR;
     });
   
     // Calculate Yearly Margin ARR for each fiscal year by summing quarters
