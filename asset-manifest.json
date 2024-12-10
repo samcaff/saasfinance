@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/saasfinance/static/css/main.bc45a66d.css",
+    "main.js": "/saasfinance/static/js/main.1c3957fd.js",
+    "static/js/453.d855a71b.chunk.js": "/saasfinance/static/js/453.d855a71b.chunk.js",
+    "index.html": "/saasfinance/index.html",
+    "main.bc45a66d.css.map": "/saasfinance/static/css/main.bc45a66d.css.map",
+    "main.1c3957fd.js.map": "/saasfinance/static/js/main.1c3957fd.js.map",
+    "453.d855a71b.chunk.js.map": "/saasfinance/static/js/453.d855a71b.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.bc45a66d.css",
+    "static/js/main.1c3957fd.js"
+  ]
+}
