@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import calculateARRProjections from './calculateARRProjections';
 import { TextField } from '@mui/material';
+import * as XLSX from 'xlsx';
 
 const dataRows = [
   { label: 'Beginning Margin ARR', key: 'beginningMarginARR' },
@@ -23,22 +24,6 @@ const ARRProjections = ({ appState, setAppState }) => {
     'Q1 2028', 'Q2 2028', 'Q3 2028', 'Q4 2028',
   ];
 
-  const initializeQuarterlyData = () => {
-    const initialData = {};
-    quarters.forEach((quarter) => {
-      initialData[quarter] = initialData[quarter] || {};
-      products.forEach((product) => {
-        initialData[quarter][product] = initialData[quarter][product] || { newDeals: 0 };
-      });
-      initialData[quarter].expansion = initialData[quarter].expansion ?? 0;
-      initialData[quarter].downgrade = initialData[quarter].downgrade ?? 0;
-      initialData[quarter].churn = initialData[quarter].churn ?? 0;
-    });
-    return initialData;
-  };
-
-  const [calculatedData, setCalculatedData] = useState({});
-
   useEffect(() => {
     const newCalculatedData = calculateARRProjections(appState);
     setAppState((prevState) => ({
@@ -59,16 +44,16 @@ const ARRProjections = ({ appState, setAppState }) => {
     const updatedData = { ...appState.localQuarterlyData };
     const quarters = Object.keys(updatedData);
   
-    // Ensure every selected product has a data entry in every quarter
+    // Ensure every selected product has valid data
     quarters.forEach((quarter) => {
       appState.selectedProducts.forEach((product) => {
+        updatedData[quarter] = updatedData[quarter] || {};
         if (!updatedData[quarter][product]) {
-          updatedData[quarter][product] = { newDeals: 0 }; // Initialize missing product data
+          updatedData[quarter][product] = { newDeals: 0 };
         }
       });
     });
   
-    // Update localQuarterlyData in appState
     setAppState((prevState) => ({
       ...prevState,
       localQuarterlyData: updatedData,
@@ -142,14 +127,69 @@ const ARRProjections = ({ appState, setAppState }) => {
     }).format(value);
   };
 
+  //  Excel export option
+  const exportToExcel = () => {
+    const tableData = [];
+    
+    // Add headers
+    const headerRow = ['ARR ($)', ...quarters];
+    tableData.push(headerRow);
+  
+    // Add calculated data rows
+    dataRows.forEach(({ label, key }) => {
+      const row = [label];
+      quarters.forEach((quarter) => {
+        row.push(appState.calculatedData[quarter]?.[key] || '-');
+      });
+      tableData.push(row);
+    });
+  
+    // Add progression of total margin ARR
+    const progressionRow = ['Progression of Total Margin ARR'];
+    quarters.forEach((quarter) => {
+      progressionRow.push(
+        appState.calculatedData[quarter]?.progressionTotalMarginARR || '-'
+      );
+    });
+    tableData.push(progressionRow);
+  
+    // Add yearly margin ARR
+    const yearlyRow = ['Yearly Margin ARR'];
+    quarters.forEach((quarter, index) => {
+      if (index % 4 === 3) {
+        yearlyRow.push(
+          appState.calculatedData[`FY ${2025 + Math.floor(index / 4)}`]
+            ?.yearlyMarginARR || '-'
+        );
+      } else {
+        yearlyRow.push('');
+      }
+    });
+    tableData.push(yearlyRow);
+  
+    // Create the worksheet and workbook
+    const worksheet = XLSX.utils.aoa_to_sheet(tableData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Quarterly ARR Projections');
+  
+    // Export to Excel
+    XLSX.writeFile(workbook, 'Quarterly_ARR_Projections.xlsx');
+  };
+
+
   const styles = {
     responsiveContainer: {
-      maxHeight: '80vh', // Restrict table height to 80% of the viewport height
-      overflow: 'auto', // Enable scrolling for overflow content
-      border: '1px solid #555', // Optional: Add a border for visibility
-      borderRadius: '8px',
-      backgroundColor: '#16152E', // Match table color
-      padding: '10px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center', // Centers the table horizontally
+    justifyContent: 'space-between',
+    maxHeight: '80vh', 
+    width: '100%', // Ensure it spans the full width
+    border: '1px solid #555',
+    borderRadius: '8px',
+    backgroundColor: '#16152E',
+    padding: '10px',
+    overflowX: 'auto',
     },
     container: {
       padding: '20px',
@@ -391,6 +431,26 @@ const ARRProjections = ({ appState, setAppState }) => {
           </tbody>
         </table>
       </div>
+      {/* Export Button */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+        <button
+          onClick={exportToExcel}
+          style={{
+            marginTop: '20px',
+            backgroundColor: '#1e90ff',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '4px',
+            padding: '10px 20px',
+            cursor: 'pointer',
+            transition: 'background-color 0.3s',
+          }}
+          onMouseEnter={(e)=>(e.target.style.backgroundColor = '#1976d1')}
+          onMouseLeave={(e)=>(e.target.style.backgroundColor = '#1E90FF')}
+        >
+          Export to Excel
+        </button>
+      </div>    
     </div>
   );
 };

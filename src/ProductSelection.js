@@ -80,36 +80,35 @@ const ProductSelection = ({ appState, setAppState }) => {
         let newLocalQuarterlyData = { ...prevState.localQuarterlyData };
 
 
-        if (selectedProduct !== "None") {
-        newSelectedProducts[index] = selectedProduct;
-          
-        Object.keys(newLocalQuarterlyData).forEach((quarter) => {
-          if (!newLocalQuarterlyData[quarter][selectedProduct]) {
-            newLocalQuarterlyData[quarter][selectedProduct] = { newDeals: 0 };
-          }
-          if (!newLocalQuarterlyData[quarter].expansion) {
-            newLocalQuarterlyData[quarter].expansion = 0;
-          }
-          if (!newLocalQuarterlyData[quarter].downgrade) {
-            newLocalQuarterlyData[quarter].downgrade = 0;
-          }
-          if (!newLocalQuarterlyData[quarter].churn) {
-            newLocalQuarterlyData[quarter].churn = 0;
-          }
-        });
-        // Initialize if not already set
-        if (!newProductFactors[selectedProduct]) {
-            newProductFactors[selectedProduct] = {};
-        }
-        if (!newServicePercentages[selectedProduct]) {
-            newServicePercentages[selectedProduct] = 0;
-        }
-        } else {
-        newSelectedProducts[index] = null;
-
-          Object.keys(newLocalQuarterlyData).forEach((quarter)=>{
-            delete newLocalQuarterlyData[quarter][selectedProduct];
+        if (selectedProduct && selectedProduct !== "None") {
+          newSelectedProducts[index] = selectedProduct;
+    
+          // Ensure selected product has valid quarterly data
+          Object.keys(newLocalQuarterlyData).forEach((quarter) => {
+            newLocalQuarterlyData[quarter] = newLocalQuarterlyData[quarter] || {};
+            if (!newLocalQuarterlyData[quarter][selectedProduct]) {
+              newLocalQuarterlyData[quarter][selectedProduct] = { newDeals: 0 };
+            }
           });
+    
+          if (!newProductFactors[selectedProduct]) {
+            newProductFactors[selectedProduct] = {};
+          }
+          if (!newServicePercentages[selectedProduct]) {
+            newServicePercentages[selectedProduct] = 0;
+          }
+        } else {
+          const deselectedProduct = newSelectedProducts[index];
+          newSelectedProducts[index] = null;
+    
+          // Remove quarterly data for deselected product
+          if (deselectedProduct) {
+            Object.keys(newLocalQuarterlyData).forEach((quarter) => {
+              delete newLocalQuarterlyData[quarter][deselectedProduct];
+            });
+            delete newProductFactors[deselectedProduct];
+            delete newServicePercentages[deselectedProduct];
+          }
         }
         
 
@@ -117,10 +116,11 @@ const ProductSelection = ({ appState, setAppState }) => {
         newSelectedProducts = newSelectedProducts.filter(Boolean);
     
         return {
-        ...prevState,
-        selectedProducts: newSelectedProducts,
-        productFactors: newProductFactors,
-        servicePercentages: newServicePercentages,
+          ...prevState,
+          selectedProducts: newSelectedProducts,
+          productFactors: newProductFactors,
+          servicePercentages: newServicePercentages,
+          localQuarterlyData: newLocalQuarterlyData,
         };
     });
   };

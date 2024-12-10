@@ -62,9 +62,14 @@ const App = () => {
       cursor: 'pointer',
       fontSize: '16px',
       borderRadius: '5px',
+      transition: 'background-color 0.3s, color 0.3s',
     },
     activeNavButton: {
-      backgroundColor: '#34FFBA',
+      backgroundColor: '#155959',
+      color: '#ffffff'
+    },
+    navButtonHover: {
+      backgroundColor: '#2ab0b0',
     },
     tabContent: {
       padding: '20px',
@@ -74,12 +79,19 @@ const App = () => {
 
   return (
     <div style={styles.appContainer}>
+      <div style={{ paddingBottom: '50px' }}>
+      
       <nav style={styles.nav}>
         <button
           style={{
             ...styles.navButton,
             ...(activeTab === 'productSelection' ? styles.activeNavButton : {}),
           }}
+          onMouseEnter={(e) => (e.target.style.backgroundColor = '#2ab0b0')}
+          onMouseLeave={(e) =>
+            (e.target.style.backgroundColor =
+              activeTab === 'productSelection' ? '#155959' : '#30CBCB')
+          }
           onClick={() => handleTabChange('productSelection')}
         >
           Product Selection
@@ -89,6 +101,11 @@ const App = () => {
             ...styles.navButton,
             ...(activeTab === 'arrProjections' ? styles.activeNavButton : {}),
           }}
+          onMouseEnter={(e) => (e.target.style.backgroundColor = '#2ab0b0')}
+          onMouseLeave={(e) =>
+            (e.target.style.backgroundColor =
+              activeTab === 'arrProjections' ? '#155959' : '#30CBCB')
+          }
           onClick={() => handleTabChange('arrProjections')}
           disabled={appState.selectedProducts.length === 0}
         >
@@ -103,8 +120,29 @@ const App = () => {
           <ARRProjections appState={appState} setAppState={setAppState} />
         )}
       </div>
+        {/* Footer */}
+          <footer
+          style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            width: '100%',
+            backgroundColor: '#16152E',
+            color: '#f1f1f1',
+            textAlign: 'center',
+            padding: '10px 20px',
+            fontSize: '12px',
+            zIndex: 1000, // Ensures it stays on top of other elements
+            boxShadow: '0px -2px 5px rgba(0, 0, 0, 0.2)', // Optional: Adds a subtle shadow for separation
+          }}
+        >
+          Disclaimer: This tool provides revenue projections solely as an indicative estimate based on simplified calculations. 
+          Actual results may vary significantly due to numerous external and internal factors. 
+          This document is not a guarantee of future performance. Siemens is not liable for any discrepancies or decisions made based on these projections.
+        </footer>
+      </div>
     </div>
-  );
-};
+    );
+  };
 
 export default App;
