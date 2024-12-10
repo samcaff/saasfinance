@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import ProductSelection from './ProductSelection';
 import ARRProjections from './ARRProjections';
-import calculateARRProjections from './calculateARRProjections';
 import './App.css';
 
 const App = () => {
@@ -80,7 +79,7 @@ const App = () => {
   return (
     <div style={styles.appContainer}>
       <div style={{ paddingBottom: '50px' }}>
-      
+
       <nav style={styles.nav}>
         <button
           style={{

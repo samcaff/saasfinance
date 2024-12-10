@@ -94,26 +94,18 @@ const ARRProjections = ({ appState, setAppState }) => {
 
 
   const handleFocus = (event) => {
-    if (event.target.value === "0") {
-      const name = event.target.getAttribute("name"); // Identify field
-      setAppState((prevState) => {
-        const updatedData = { ...prevState.localQuarterlyData };
-        // Set the field value to an empty string in appState
-        updatedData[name] = "";
-        return { ...prevState, localQuarterlyData: updatedData };
-      });
+    if (event.target.value === "0" || event.target.value === 0) {
+      event.target.select(); // Highlights the entire value
     }
   };
 
   const handleBlur = (event) => {
     if (event.target.value === "") {
-      const name = event.target.getAttribute("name"); // Identify field
-      setAppState((prevState) => {
-        const updatedData = { ...prevState.localQuarterlyData };
-        // Reset field value in appState
-        updatedData[name] = 0;
-        return { ...prevState, localQuarterlyData: updatedData };
-      });
+      event.target.value = "0"; // Reset to 0
+      handleInputChange(
+        event.target.getAttribute("data-quarter"),
+        event.target.getAttribute("data-field")
+      )({ target: { value: 0 } });
     }
   };
 
@@ -348,17 +340,16 @@ const ARRProjections = ({ appState, setAppState }) => {
                     key={quarter}
                   >
                     <TextField
-                      
                       type="number"
                       value={appState.localQuarterlyData[quarter]?.[product]?.newDeals || 0}
                       onChange={handleInputChange(quarter, 'newDeals', product)}
+                      onFocus={handleFocus}
+                      onBlur={handleBlur}
                       variant="standard"
                       inputProps={{
                         min: 0,
-                        style: { textAlign: 'center'},
+                        style: { textAlign: 'center' },
                       }}
-                      onFocus={handleFocus}
-                      onBlur={handleBlur}
                       sx={{
                         '& .MuiInputBase-root': {
                           backgroundColor: '#24233C',
@@ -398,14 +389,14 @@ const ARRProjections = ({ appState, setAppState }) => {
                       type="number"
                       value={appState.localQuarterlyData[quarter]?.[field] || 0}
                       onChange={handleInputChange(quarter, field)}
+                      onFocus={handleFocus}
+                      onBlur={handleBlur}
                       variant="standard"
                       inputProps={{
                         min: 0,
                         max: 100,
-                        style: { textAlign: 'center'},
+                        style: { textAlign: 'center' },
                       }}
-                      onFocus={handleFocus}
-                      onBlur={handleBlur}
                       sx={{
                         '& .MuiInputBase-root': {
                           backgroundColor: '#24233C',

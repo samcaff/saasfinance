@@ -217,16 +217,22 @@ const ProductSelection = ({ appState, setAppState }) => {
   };
 
   const handleFocus = (event) => {
-    if (event.target.value === "0") {
-      const inputName = event.target.name; // Get the name of the field
-      setAppState((prevState) => ({
+    const quarter = event.target.getAttribute("data-quarter");
+    const field = event.target.getAttribute("data-field");
+    const product = event.target.getAttribute("data-product"); // If applicable for products
+  
+    setAppState((prevState) => {
+      const updatedData = { ...prevState.localQuarterlyData };
+      if (product) {
+        updatedData[quarter][product][field] = "";
+      } else {
+        updatedData[quarter][field] = "";
+      }
+      return {
         ...prevState,
-        globalMargins: {
-          ...prevState.globalMargins,
-          [inputName]: "",
-        },
-      }));
-    }
+        localQuarterlyData: updatedData,
+      };
+    });
   };
 
   const handleBlur = (event) => {
@@ -338,6 +344,8 @@ const totalLicenseMargin = appState.selectedProducts.reduce((acc, product) => {
       flexDirection: 'column',
       gap: '10px',
       flexShrink: 0,
+      maxHeight: '1285px',
+      overflowY: 'auto',
     },
     marginContainer: {
       display: 'flex',
@@ -622,13 +630,16 @@ const totalLicenseMargin = appState.selectedProducts.reduce((acc, product) => {
             <div style={styles.graph}>
               <h3 style={styles.graphTitle}>Progression of Total Margin ARR</h3>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={progressionData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                <LineChart
+                  data={progressionData}
+                  margin={{ top: 20, right: 30, left: 50, bottom: 0 }} // Added space on the left
+                >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="quarter" />
                   <YAxis />
-                  <Tooltip />
+                  <Tooltip formatter={(value) => `$${value.toFixed(2)}`}/>
                   <Legend />
-                  <Line type="monotone" dataKey="value" stroke="#8884d8" />
+                  <Line type="monotone" dataKey="value" name="Progression Total Margin" stroke="#8884d8" />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -636,13 +647,16 @@ const totalLicenseMargin = appState.selectedProducts.reduce((acc, product) => {
             <div style={styles.graph}>
             <h3 style={styles.graphTitle}>Yearly Margin ARR</h3>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={yearlyMarginARRData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                <BarChart 
+                  data={yearlyMarginARRData} 
+                  margin={{ top: 20, right: 30, left: 50, bottom: 0 }}
+                  >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="year" />
                   <YAxis />
-                  <Tooltip />
+                  <Tooltip formatter={(value) => `$${value.toFixed(2)}`}/>
                   <Legend />
-                  <Bar dataKey="value" fill="#82ca9d" />
+                  <Bar dataKey="value" name="Yearly Margin ARR" fill="#82ca9d" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
