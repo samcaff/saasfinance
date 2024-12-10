@@ -217,22 +217,16 @@ const ProductSelection = ({ appState, setAppState }) => {
   };
 
   const handleFocus = (event) => {
-    const quarter = event.target.getAttribute("data-quarter");
-    const field = event.target.getAttribute("data-field");
-    const product = event.target.getAttribute("data-product"); // If applicable for products
-  
-    setAppState((prevState) => {
-      const updatedData = { ...prevState.localQuarterlyData };
-      if (product) {
-        updatedData[quarter][product][field] = "";
-      } else {
-        updatedData[quarter][field] = "";
-      }
-      return {
+    if (event.target.value === "0") {
+      const inputName = event.target.name; // Get the name of the field
+      setAppState((prevState) => ({
         ...prevState,
-        localQuarterlyData: updatedData,
-      };
-    });
+        globalMargins: {
+          ...prevState.globalMargins,
+          [inputName]: "",
+        },
+      }));
+    }
   };
 
   const handleBlur = (event) => {
