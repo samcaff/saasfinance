@@ -18,6 +18,18 @@ const dataRows = [
   { label: 'Quarterly Margin ARR TOTAL', key: 'quarterlyMarginARRTotal' },
   { label: 'Ending Margin ARR', key: 'endingMarginARR' },
 ];
+const dataRowsRevenue = [
+  { label: 'Beginning ARR Revenue', key: 'beginningRevenueARR' },
+  { label: 'Quarterly ARR Revenue (Licenses)', key: 'quarterlyRevenueLicenses' },
+  { label: 'Quarterly ARR Revenue (Services)', key: 'quarterlyRevenueServices' },
+  { label: 'New ARR Revenue Total', key: 'newRevenueTotal' },
+  { label: 'Expansion ARR', key: 'expansionRevenueARR' },
+  { label: 'Downgrade ARR', key: 'downgradeRevenueARR' },
+  { label: 'Churn ARR', key: 'churnRevenueARR' },
+  { label: 'Quarterly Revenue ARR TOTAL', key: 'quarterlyRevenueARRTotal' },
+  { label: 'Ending Revenue ARR', key: 'endingRevenueARR' },
+  { label: 'Progression of Total Revenue ARR', key: 'progressionTotalRevenueARR'},
+];
 
 const ARRProjections = ({ appState, setAppState }) => {
   const products = appState.selectedProducts;
@@ -264,6 +276,9 @@ const ARRProjections = ({ appState, setAppState }) => {
             {/* Header Row for FY and Quarters */}
             <thead>
               <tr>
+                <td colSpan={quarters.length + 1} style={{...styles.td, backgroundColor: '#24233C', color: '#fff' }}>Summary Margin ARR</td>
+              </tr>
+              <tr>
                 <th style={styles.th}>ARR ($)</th>
                 {quarters.map((quarter, index) => (
                   <th style={{
@@ -324,6 +339,48 @@ const ARRProjections = ({ appState, setAppState }) => {
                   ))}
               </tr>
             </tbody>
+            <tbody>
+              <tr>
+                  <td colSpan={quarters.length + 1} style={{...styles.td, backgroundColor: '#24233C', color: '#fff' }}>Summary Revenue ARR</td>
+                </tr>
+                {dataRowsRevenue.map(({ label, key }) => (
+                    <tr key={key}>
+                        <td style={{...styles.td,backgroundColor:'#100f30',}}>{label}</td>
+                        {quarters.map((quarter, index) => (
+                            <td
+                                key={quarter}
+                                style={{
+                                    ...styles.td, backgroundColor:'#100f30',
+                                    borderRight: (index + 1) % 4 === 0 && (index + 1) !== 16 ? '4px double #999' : '1px solid #555',
+                                    borderLeft: index === 0 ? '4px double #999' : 'none',
+                                }}
+                            >
+                                {appState.calculatedData[quarter]?.[key] !== undefined
+                                    ? formatCurrency(appState.calculatedData[quarter][key])
+                                    : '-'}
+                            </td>
+                        ))}
+                    </tr>
+                ))}
+                <tr>
+                <td style={{ ...styles.td, backgroundColor: '#333C57' }}>Yearly Revenue ARR</td>
+                {quarters.map((quarter, index) => (
+                  <td
+                    style={{
+                      ...styles.td,
+                      backgroundColor: '#333C57',
+                      borderRight: (index + 1) % 4 === 0 && (index + 1) !== 16 ? '4px double #999' : '1px solid #333C57',
+                      borderLeft: index === 0 ? '4px double #999' : 'none',
+                    }}
+                    key={quarter}
+                  >
+                    {index % 4 === 3
+                      ? formatCurrency(appState.calculatedData[`FY ${2025 + Math.floor(index / 4)}`]?.yearlyRevenueARR)
+                      : ''}
+                  </td>
+                ))}
+              </tr>
+            </tbody>
 
             {/* Inputs Section */}
             <thead>
@@ -350,8 +407,7 @@ const ARRProjections = ({ appState, setAppState }) => {
                         borderRight: (index+1)%4 === 0 && (index+1)!=16 ? '4px double #999' : '1px solid #555',
                         borderLeft: index===0 ? '4px double #999' : 'none',
                       }} key={quarter}>
-                        {(appState.arpu[product] || 0).toFixed(0)} 
-                      </td>
+                      {formatCurrency(appState.arpu[product])}                      </td>
                     ))}
                   </tr>
                   <tr>
@@ -362,7 +418,7 @@ const ARRProjections = ({ appState, setAppState }) => {
                         borderRight: (index+1)%4 === 0 && (index+1)!=16 ? '4px double #999' : '1px solid #555',
                         borderLeft: index===0 ? '4px double #999' : 'none',
                       }} key={quarter}>
-                        {(appState.professionalServices[product] || 0).toFixed(0)} 
+                        {formatCurrency(appState.professionalServices[product])} 
                       </td>
                     ))}
                   </tr>

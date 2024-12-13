@@ -4,6 +4,7 @@ const calculateARRProjections = (state) => {
     const quarters = Object.keys(quarterlyData);
   
     let progressionTotalMarginARR = 0; // Running total for progression of total margin ARR
+    let progressionTotalRevenueARR = 0;
 
     quarters.forEach((quarter) => {
       calculatedData[quarter] = {};
@@ -21,7 +22,7 @@ const calculateARRProjections = (state) => {
       const expansion = quarterlyData[quarter]?.expansion || 0;
       const downgrade = quarterlyData[quarter]?.downgrade || 0;
       const churn = quarterlyData[quarter]?.churn || 0;
-  
+// margin calculations  
       // Calculate New ARR Margin Licenses and Services based on ARPU and Professional Services per Deal
       const newArrMarginLicenses = selectedProducts.reduce((acc, product) => {
         const newDeals = quarterlyData[quarter]?.[product]?.newDeals || 0;
@@ -53,6 +54,32 @@ const calculateARRProjections = (state) => {
       // Update the running total for progression of total margin ARR
       progressionTotalMarginARR += endingMarginARR;
   
+//revenue calculations
+      const quarterlyRevenueLicenses = selectedProducts.reduce((acc, product) => {
+        const newDeals = quarterlyData[quarter]?.[product]?.newDeals || 0;
+        return acc + arpu[product] * newDeals;
+      }, 0);
+
+      const quarterlyRevenueServices = selectedProducts.reduce((acc, product) => {
+        const newDeals = quarterlyData[quarter]?.[product]?.newDeals || 0;
+        return acc + profServices[product] * newDeals;
+      }, 0);
+
+      const newRevenueTotal = quarterlyRevenueLicenses + quarterlyRevenueServices;
+
+      const beginningRevenueARR = quarters
+        .slice(0, quarters.indexOf(quarter))
+        .slice(-12)
+        .reduce((acc, prevQuarter) => acc + (calculatedData[prevQuarter]?.newRevenueTotal || 0), 0);
+
+      const expansionRevenueARR = beginningRevenueARR * (expansion / 100);
+      const downgradeRevenueARR = -beginningRevenueARR * (downgrade / 100);
+      const churnRevenueARR = -beginningRevenueARR * (churn / 100);
+
+      const quarterlyRevenueARRTotal = newRevenueTotal + expansionRevenueARR + downgradeRevenueARR + churnRevenueARR;
+      const endingRevenueARR = beginningRevenueARR + quarterlyRevenueARRTotal;
+      progressionTotalRevenueARR += endingRevenueARR;
+
       // Store the calculated values for this quarter
       calculatedData[quarter] = {
         beginningMarginARR,
@@ -65,6 +92,17 @@ const calculateARRProjections = (state) => {
         quarterlyMarginARRTotal,
         endingMarginARR,
         progressionTotalMarginARR,
+
+        beginningRevenueARR,
+        quarterlyRevenueLicenses,
+        quarterlyRevenueServices,
+        newRevenueTotal,
+        expansionRevenueARR,
+        downgradeRevenueARR,
+        churnRevenueARR,
+        quarterlyRevenueARRTotal,
+        endingRevenueARR,
+        progressionTotalRevenueARR,
       };
     });
   
@@ -77,6 +115,14 @@ const calculateARRProjections = (state) => {
         .slice(startQuarter, endQuarter)
         .reduce((acc, quarter) => acc + (calculatedData[quarter]?.endingMarginARR || 0), 0);
       calculatedData[year] = { yearlyMarginARR: yearlyTotal };
+    });
+    years.forEach((year, index) => {
+      const startQuarter = index * 4;
+      const endQuarter = startQuarter + 4;
+      const yearlyTotal = quarters
+          .slice(startQuarter, endQuarter)
+          .reduce((acc, quarter) => acc + (calculatedData[quarter]?.endingRevenueARR || 0), 0);
+      calculatedData[year] = { ...calculatedData[year], yearlyRevenueARR: yearlyTotal };
     });
     
     return calculatedData;

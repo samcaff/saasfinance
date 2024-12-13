@@ -2,6 +2,10 @@ body {
   margin: 0;
   padding: 0;
   background-color: #020027;
+  transform: scale(0.9); 
+  transform-origin: top left; 
+  width: 111%; 
+  overflow-x: hidden; 
 }
 
 .App {
