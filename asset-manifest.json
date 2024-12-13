@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/saasfinance/static/css/main.37da1f94.css",
-    "main.js": "/saasfinance/static/js/main.353c6366.js",
+    "main.css": "/saasfinance/static/css/main.8969425b.css",
+    "main.js": "/saasfinance/static/js/main.54a40fee.js",
     "static/js/155.d5a18cb4.chunk.js": "/saasfinance/static/js/155.d5a18cb4.chunk.js",
     "static/js/984.1a58d56a.chunk.js": "/saasfinance/static/js/984.1a58d56a.chunk.js",
     "static/js/453.d855a71b.chunk.js": "/saasfinance/static/js/453.d855a71b.chunk.js",
@@ -9,14 +9,14 @@
     "static/media/siemenslogo.png": "/saasfinance/static/media/siemenslogo.b560e8a85cadca1d1b36.png",
     "static/media/png-transparent-pdf-icon-thumbnail.png": "/saasfinance/static/media/png-transparent-pdf-icon-thumbnail.b98e9fb2662a60e4afff.png",
     "index.html": "/saasfinance/index.html",
-    "main.37da1f94.css.map": "/saasfinance/static/css/main.37da1f94.css.map",
-    "main.353c6366.js.map": "/saasfinance/static/js/main.353c6366.js.map",
+    "main.8969425b.css.map": "/saasfinance/static/css/main.8969425b.css.map",
+    "main.54a40fee.js.map": "/saasfinance/static/js/main.54a40fee.js.map",
     "155.d5a18cb4.chunk.js.map": "/saasfinance/static/js/155.d5a18cb4.chunk.js.map",
     "984.1a58d56a.chunk.js.map": "/saasfinance/static/js/984.1a58d56a.chunk.js.map",
     "453.d855a71b.chunk.js.map": "/saasfinance/static/js/453.d855a71b.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.37da1f94.css",
-    "static/js/main.353c6366.js"
+    "static/css/main.8969425b.css",
+    "static/js/main.54a40fee.js"
   ]
 }
