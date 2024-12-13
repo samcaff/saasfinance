@@ -16,7 +16,9 @@
     "react-scripts": "^5.0.1",
     "recharts": "^2.13.3",
     "web-vitals": "^2.1.4",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "html2cavas": "^1.4.1",
+    "jspdf": "^2.5.2"
   },
   "scripts": {
     "start": "react-scripts start",

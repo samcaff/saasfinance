@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import InfoPopup from './infoPopup';
 import {
   LineChart,
   Line,
@@ -17,7 +18,10 @@ import {
 } from 'recharts';
 import { Checkbox, FormControlLabel } from '@mui/material';
 import { TextField, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
-
+import calculateARRProjections from './calculateARRProjections';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import pdfIcon from './png-transparent-pdf-icon-thumbnail.png'; 
 
 
 const productDetails = {
@@ -49,6 +53,17 @@ const productDetails = {
       serviceFactors: [0.4, 0.7, 0.7, 0.04, 0.7, 0.2, 0.1, 0.5, 0] }
 };
 
+const factorDescriptions = [
+  "Prebuilt applications and extensions designed to enhance core software functionality",
+  "Bespoke software solutions tailored to meet specific business needs",
+  "Tools and services to connect systems and automate workflows for increased efficiency",
+  "Digital assets and documentation that complement and support the product",
+  "Expert advisory services to optimize system implementation and use",
+  "Specialized workflows tailored to unique operational requirements",
+  "Comprehensive training and ongoing support to maximize user adoption and success",
+  "Services for setting up and customizing products and managing data alignment",
+  "Planning and execution support for deploying products at scale",
+];
 
 const ProductSelection = ({ appState, setAppState }) => {
   const products = Object.keys(productDetails);
@@ -60,6 +75,20 @@ const ProductSelection = ({ appState, setAppState }) => {
   const [selectedProduct1, setSelectedProduct1] = useState("None");
   const [selectedProduct2, setSelectedProduct2] = useState("None");
   const [selectedProduct3, setSelectedProduct3] = useState("None");
+
+  //info popup use
+  const [popupData, setPopupData] = useState({ isOpen: false, title: '', content: '' });
+  const [popupPosition, setPopupPosition] = useState(null);
+  const openPopup = (title, content, event) => {
+    const rect = event.target.getBoundingClientRect();
+    setPopupData({ isOpen: true, title, content });
+    setPopupPosition({ top: rect.top + window.scrollY, left: rect.left + window.scrollX });
+  };
+
+  const closePopup = () => {
+    setPopupData({ isOpen: false, title: '', content: '' });
+  };
+
 
   // Synchronize local selected products with appState
   useEffect(() => {
@@ -127,6 +156,7 @@ const ProductSelection = ({ appState, setAppState }) => {
 
   const handleFactorChange = (product, factorIndex) => (event) => {
     const isSelected = event.target.checked;
+
     setAppState((prevState) => {
         const newProductFactors = {
         ...prevState.productFactors,
@@ -135,24 +165,24 @@ const ProductSelection = ({ appState, setAppState }) => {
             [factorIndex]: isSelected,
         },
         };
-    
+        
         const serviceFactorArray = productDetails[product].serviceFactors;
         const newTotal = Object.entries(newProductFactors[product])
-        .filter(([, selected]) => selected)
-        .reduce((total, [index]) => total + serviceFactorArray[index], 0);
+          .filter(([, selected]) => selected)
+          .reduce((total, [index]) => total + serviceFactorArray[index], 0);
     
         const newServicePercentages = {
         ...prevState.servicePercentages,
         [product]: newTotal,
         };
-    
+
         return {
         ...prevState,
         productFactors: newProductFactors,
         servicePercentages: newServicePercentages,
         };
     });
-  
+    
   };
 
   const handleGlobalMarginChange = (marginType) => (event) => {
@@ -175,7 +205,12 @@ const ProductSelection = ({ appState, setAppState }) => {
   useEffect(() => {
     const arpuData = {};
     const profServicesData = {};
-
+    
+    const updatedCalculatedData = calculateARRProjections({
+      ...appState,
+      quarterlyData: appState.localQuarterlyData,
+    });
+    
     appState.selectedProducts.forEach((product) => {
       const productData = productDetails[product];
       const totalServicePercentage = appState.servicePercentages[product] || 0;
@@ -191,8 +226,9 @@ const ProductSelection = ({ appState, setAppState }) => {
       ...prevState,
       arpu: arpuData,
       professionalServices: profServicesData,
+      calculatedData: updatedCalculatedData,
     }));
-  }, [appState.selectedProducts, appState.globalMargins, appState.servicePercentages]);
+  }, [appState.productFactors, appState.selectedProducts, appState.globalMargins, appState.servicePercentages, appState.localQuarterlyData,]);
 
 
   const calculateProductData = (product) => {
@@ -242,36 +278,21 @@ const ProductSelection = ({ appState, setAppState }) => {
     }
   };
 
-
-  const defaultProgressionData = [
-    { quarter: 'Q1 2025', value: 0 },
-    { quarter: 'Q2 2025', value: 0 },
-    { quarter: 'Q3 2025', value: 0 },
-    { quarter: 'Q4 2025', value: 0 },
-  ];
-  
-  const defaultYearlyMarginARRData = [
-    { year: 'FY 2025', value: 0 },
-    { year: 'FY 2026', value: 0 },
-    { year: 'FY 2027', value: 0 },
-    { year: 'FY 2028', value: 0 },
-  ];
-
-  const progressionData = appState && Object.keys(appState.calculatedData || {}).length > 0
-  ? Object.keys(appState.calculatedData)
+  const progressionData = useMemo(() => {
+    return Object.keys(appState.calculatedData || {})
       .filter((key) => key.startsWith('Q'))
       .map((quarter) => ({
         quarter,
         value: appState.calculatedData[quarter]?.progressionTotalMarginARR || 0,
-      }))
-  : defaultProgressionData;
-
-const yearlyMarginARRData = appState && Object.keys(appState.calculatedData || {}).length > 0
-  ? ['FY 2025', 'FY 2026', 'FY 2027', 'FY 2028'].map((year) => ({
+      }));
+  }, [appState.calculatedData]);
+  
+  const yearlyMarginARRData = useMemo(() => {
+    return ['FY 2025', 'FY 2026', 'FY 2027', 'FY 2028'].map((year) => ({
       year,
       value: appState.calculatedData[year]?.yearlyMarginARR || 0,
-    }))
-  : defaultYearlyMarginARRData;
+    }));
+  }, [appState.calculatedData]);
 // Pie Chart : Service/License margin ratio logic
 const totalServiceMargin = appState.selectedProducts.reduce((acc, product) => {
   const productData = calculateProductData(product);
@@ -295,8 +316,44 @@ const totalLicenseMargin = appState.selectedProducts.reduce((acc, product) => {
         { name: 'License Margin', value: 0 },
       ];
 
+ 
+  // PDF exporting
+const exportToPDF = () => {
+  const containerElement = document.getElementById('contentArea');
+  if (!containerElement) {
+    console.error('Content area not found for PDF export.');
+    return;
+  }
 
+  // Set fixed canvas dimensions
+  const canvasWidth = containerElement.scrollHeight; // Adjust this to your desired width
+  const canvasHeight = containerElement.scrollHeight; // Adjust this to your desired height
 
+  html2canvas(containerElement, {
+    width: canvasWidth,
+    height: canvasHeight,
+    scale: 2, // Higher scale for better quality
+    useCORS: true,
+    scrollX: 0,
+    scrollY: 0,
+  }).then((canvas) => {
+    const imgData = canvas.toDataURL('image/png');
+
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'px',
+      format: [canvasWidth, canvasHeight],
+    });
+
+    pdf.addImage(imgData, 'PNG', 0, 0, canvasWidth, canvasHeight);
+    pdf.save('Product_Selection.pdf');
+  });
+};
+  
+  // Export Dropdown Toggle Logic
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
+  
   const styles = {
     container: {
       padding: '20px',
@@ -315,12 +372,13 @@ const totalLicenseMargin = appState.selectedProducts.reduce((acc, product) => {
       display: 'flex',
       flexDirection: 'column',
       flex: 1,
+      backgroundColor: '#020027',
     },
     graphsContainer: {
       display: 'flex',
       flexDirection: 'column',
       gap: '20px',
-      marginTop: '20px',
+      marginTop: '0px',
       marginLeft: '20px',
     },
     graph: {
@@ -424,17 +482,41 @@ const totalLicenseMargin = appState.selectedProducts.reduce((acc, product) => {
       textAlign: 'center',
       marginBottom: '10px',
       color: '#333',
-    }
+    },
+    infoBubble: {
+      width: "20px",
+      height: "20px",
+      border: "2px solid #555",
+      borderRadius: "50%",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      cursor: "pointer",
+      backgroundColor: "#16152E",
+      color: "#f1f1f1",
+      fontSize: "12px",
+    },
   };
 
   const selectedProducts = [selectedProduct1, selectedProduct2, selectedProduct3].filter(
     (product) => product !== 'None'
   );
 
+  
   return (
     <div style={styles.container}>
+      {/* InfoPopup Conditional Rendering */}
+      {popupData.isOpen && (
+        <InfoPopup
+          title={popupData.title}
+          content={popupData.content}
+          position={popupPosition}
+          onClose={closePopup}
+        />
+      )}
       <div style={styles.mainContent}>
         <div style={styles.sidebar}>
+          <h1>Margin Inputs</h1>
         <div style={styles.marginContainer}>
           {/* Product Margin Input */}
           <div style={styles.marginInputContainer}>
@@ -555,36 +637,68 @@ const totalLicenseMargin = appState.selectedProducts.reduce((acc, product) => {
             <div style={styles.factorContainer}>
               {selectedProducts.map((product) => (
                 <div key={product} style={styles.productFactors}>
-                  <h3>{product}</h3>
+                  <h3 style={{marginBottom: '-13px',}}>{product}</h3>
+                  <h5>Select services for {product}</h5>
                   {factors.map((factor, index) => (
-                    <FormControlLabel
+                    <div
                       key={index}
-                      control={
-                        <Checkbox
-                          checked={!!appState.productFactors[product]?.[index]}
-                          onChange={handleFactorChange(product, index)}
-                          sx={{
-                            color: '#555', // Unchecked color
-                            '&.Mui-checked': {
-                              color: '#1e90ff', // Checked color
-                            },
-                          }}
-                        />
-                      }
-                      label={factor}
-                      sx={{
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
                         marginBottom: '5px',
-                        color: '#f1f1f1', // Label color
                       }}
-                    />
+                    >
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={!!appState.productFactors[product]?.[index]}
+                            onChange={handleFactorChange(product, index)}
+                            sx={{
+                              color: '#555',
+                              "&.Mui-checked": {
+                                color: '#1e90ff',
+                              },
+                            }}
+                          />
+                        }
+                        label={factor}
+                        sx={{
+                          color: '#f1f1f1',
+                          marginRight: '10px',
+                        }}
+                      />
+                      <button
+                        onMouseEnter={(e) => openPopup(factor, factorDescriptions[index], e)}
+                        onMouseLeave={closePopup}
+                        style={{
+                          background: 'None',
+                          border: '2px solid #555',
+                          borderRadius: '50%',
+                          width: '16px',
+                          height: '16px',
+                          color: '#555',
+                          cursor: 'pointer',
+                          fontSize: '10px',
+                          fontWeight: 'bold',
+                          textAlign: 'center',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontFamily: 'Georgia, serif',
+                        }}
+                      >
+                        i
+                      </button>
+                    </div>
                   ))}
-
                 </div>
               ))}
             </div>
           </div>
         </div>
-          <div style={styles.contentArea}>
+          <div id="contentArea" style={styles.contentArea}>
+            <h1 style={{paddingLeft:'20px'}}>Product Assumptions</h1>
             <div style={styles.tableContainer}>
               <table style={styles.table}>
                 <thead>
@@ -620,6 +734,8 @@ const totalLicenseMargin = appState.selectedProducts.reduce((acc, product) => {
             </div>
           
           {/* Graphs */}
+          <h1 style={{paddingLeft: '20px'}}>Graphs</h1>
+
           <div style={styles.graphsContainer}>
             <div style={styles.graph}>
               <h3 style={styles.graphTitle}>Progression of Total Margin ARR</h3>
@@ -630,8 +746,8 @@ const totalLicenseMargin = appState.selectedProducts.reduce((acc, product) => {
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="quarter" />
-                  <YAxis />
-                  <Tooltip formatter={(value) => `$${value.toFixed(2)}`}/>
+                  <YAxis tickFormatter={(value) => `$${Math.round(value).toLocaleString()}`} />
+                  <Tooltip formatter={(value) => `$${Math.round(value).toLocaleString()}`} />
                   <Legend />
                   <Line type="monotone" dataKey="value" name="Progression Total Margin" stroke="#8884d8" />
                 </LineChart>
@@ -647,8 +763,8 @@ const totalLicenseMargin = appState.selectedProducts.reduce((acc, product) => {
                   >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="year" />
-                  <YAxis />
-                  <Tooltip formatter={(value) => `$${value.toFixed(2)}`}/>
+                  <YAxis tickFormatter={(value) => `$${Math.round(value).toLocaleString()}`} />
+                  <Tooltip formatter={(value) => `$${Math.round(value).toLocaleString()}`} />
                   <Legend />
                   <Bar dataKey="value" name="Yearly Margin ARR" fill="#82ca9d" />
                 </BarChart>
@@ -676,6 +792,70 @@ const totalLicenseMargin = appState.selectedProducts.reduce((acc, product) => {
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
+            </div>
+          </div>
+          {/* Export Button */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={toggleDropdown}
+                style={{
+                  marginTop: '20px',
+                  backgroundColor: '#41B683',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '10px 30px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  transition: 'background-color 0.3s',
+                }}
+                onMouseEnter={(e) => (e.target.style.backgroundColor = '#2f825e')}
+                onMouseLeave={(e) => (e.target.style.backgroundColor = '#41B683')}
+              >
+                Export
+                <span style={{ marginLeft: '10px' }}>▼</span>
+              </button>
+              {isDropdownOpen && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    right: 0,
+                    backgroundColor: '#333C57',
+                    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
+                    zIndex: 1000,
+                    overflow: 'hidden',
+                  }}
+                >
+                  <button
+                    onClick={exportToPDF}
+                    style={{
+                      backgroundColor: '#333C57',
+                      color: '#fff',
+                      border: 'none',
+                      padding: '10px 20px',
+                      width: '100%',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.3s',
+                    }}
+                    onMouseEnter={(e) => (e.target.style.backgroundColor = '#2f825e')}
+                    onMouseLeave={(e) => (e.target.style.backgroundColor = '#333C57')}
+                  >
+                    to PDF
+                    <span style={{ marginLeft: '8px' }}>
+                    <img
+                      src={pdfIcon}
+                      alt="PDF"
+                      style={{ width: '22px', height: '18px', marginBottom: '-5px'
+                       }}
+                    />
+                  </span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

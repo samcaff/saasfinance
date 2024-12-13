@@ -15,13 +15,35 @@ body {
 .nav {
   display: flex;
   justify-content: flex-start;
-  position: sticky;
-  top: 0;
   background-color: #24233c;
-  z-index: 1000;
-  width: max-content;
-  min-width: 100%;
+  padding: 10px;
+  border-bottom: 1px solid #444;
+}
+.nav span {
+  color: #777;
+  margin-right: 20px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  position: relative;
+  padding-bottom: 5px;
+}
+.nav span:hover {
+  color: #fff;
+}
+.nav span.active {
+  color: #fff;
+}
 
+.nav span.active::after {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 2px;
+  background-color: #fff;
+  position: absolute;
+  bottom: 0;
+  left: 0;
 }
 .nav button {
   background-color: #30CBCB;
@@ -80,13 +102,13 @@ body {
 
 /* Scrollbar track */
 ::-webkit-scrollbar-track {
-  background: #020027; /* Match background color */
+  background: #100e29; 
   border-radius: 10px;
 }
 
 /* Scrollbar thumb */
 ::-webkit-scrollbar-thumb {
-  background-color: #555; /* Color of the scrollbar */
+  background-color: #353440; /* Color of the scrollbar */
   border-radius: 10px;
   border: 2px solid #020027; /* Adds padding around the thumb */
 }

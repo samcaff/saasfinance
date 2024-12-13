@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import ProductSelection from './ProductSelection';
 import ARRProjections from './ARRProjections';
+import About from './About';
 import './App.css';
+import siemensLogo from './siemenslogo.png';
 
 const App = () => {
   const initializeQuarterlyData = () => {
@@ -21,7 +23,8 @@ const App = () => {
     });
     return initialData;
   };
-  const [activeTab, setActiveTab] = useState('productSelection');
+  const [hoveredTab, setHoveredTab] = useState(null);
+  const [activeTab, setActiveTab] = useState('about'); //default/starting tab
   const [appState, setAppState] = useState({
     selectedProducts: [],
     productFactors: {},
@@ -38,6 +41,10 @@ const App = () => {
     setActiveTab(tab);
   };
 
+  //disclaimer closing
+  const [disclaimerAcknowledged, setDisclaimerAcknowledged] = useState(false);
+
+
   const styles = {
     appContainer: {
       padding: '0',
@@ -53,22 +60,23 @@ const App = () => {
       padding: '10px',
     },
     navButton: {
-      backgroundColor: '#30CBCB',
-      color: '#020027',
+      
+      color: '#7d7ca1',
       border: 'none',
       padding: '10px 20px',
       marginRight: '10px',
       cursor: 'pointer',
       fontSize: '16px',
-      borderRadius: '5px',
       transition: 'background-color 0.3s, color 0.3s',
     },
-    activeNavButton: {
-      backgroundColor: '#155959',
-      color: '#ffffff'
+    navButtonHover:{
+      color: '#ffffff',
+      fontWeight: 'bold',
     },
-    navButtonHover: {
-      backgroundColor: '#2ab0b0',
+    activeNavButton: {
+      fontWeight: 'bold',
+      color: '#ffffff',
+      borderBottom: '2px solid #ffffff',
     },
     tabContent: {
       padding: '20px',
@@ -81,37 +89,55 @@ const App = () => {
       <div style={{ paddingBottom: '50px' }}>
 
       <nav style={styles.nav}>
-        <button
+        <span style={{marginLeft:'10px',marginRight:'20px',}}>
+          <img
+            src={siemensLogo}
+            alt="PDF"
+            style={{ width: '102px', height: '34px', marginBottom: '-5px' }}
+          />
+        </span>
+        <span
+          style={{
+            ...styles.navButton,
+            ...(activeTab === 'about' ? styles.activeNavButton : {}),
+            ...(hoveredTab === 'about' ? styles.navButtonHover : {}),
+          }}
+          onClick={() => handleTabChange('about')}
+          onMouseEnter={() => setHoveredTab('about')}
+          onMouseLeave={() => setHoveredTab(null)}
+        >
+          About
+        </span>
+        <span
           style={{
             ...styles.navButton,
             ...(activeTab === 'productSelection' ? styles.activeNavButton : {}),
+            ...(hoveredTab === 'productSelection' ? styles.navButtonHover : {}),
           }}
-          onMouseEnter={(e) => (e.target.style.backgroundColor = '#2ab0b0')}
-          onMouseLeave={(e) =>
-            (e.target.style.backgroundColor =
-              activeTab === 'productSelection' ? '#155959' : '#30CBCB')
-          }
           onClick={() => handleTabChange('productSelection')}
+          onMouseEnter={() => setHoveredTab('productSelection')}
+          onMouseLeave={() => setHoveredTab(null)}
         >
           Product Selection
-        </button>
-        <button
+        </span>
+        <span
           style={{
             ...styles.navButton,
             ...(activeTab === 'arrProjections' ? styles.activeNavButton : {}),
+            ...(hoveredTab === 'arrProjections' ? styles.navButtonHover : {}),
           }}
-          onMouseEnter={(e) => (e.target.style.backgroundColor = '#2ab0b0')}
-          onMouseLeave={(e) =>
-            (e.target.style.backgroundColor =
-              activeTab === 'arrProjections' ? '#155959' : '#30CBCB')
-          }
           onClick={() => handleTabChange('arrProjections')}
+          onMouseEnter={() => setHoveredTab('arrProjections')}
+          onMouseLeave={() => setHoveredTab(null)}
           disabled={appState.selectedProducts.length === 0}
         >
           Quarterly ARR Projections
-        </button>
+        </span>
       </nav>
       <div style={styles.tabContent}>
+        {activeTab === 'about' && (
+          <About />
+        )}
         {activeTab === 'productSelection' && (
           <ProductSelection appState={appState} setAppState={setAppState} />
         )}
@@ -120,25 +146,49 @@ const App = () => {
         )}
       </div>
         {/* Footer */}
+        {!disclaimerAcknowledged && (
           <footer
-          style={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            width: '100%',
-            backgroundColor: '#16152E',
-            color: '#f1f1f1',
-            textAlign: 'center',
-            padding: '10px 20px',
-            fontSize: '12px',
-            zIndex: 1000, // Ensures it stays on top of other elements
-            boxShadow: '0px -2px 5px rgba(0, 0, 0, 0.2)', // Optional: Adds a subtle shadow for separation
-          }}
-        >
-          Disclaimer: This tool provides revenue projections solely as an indicative estimate based on simplified calculations. 
-          Actual results may vary significantly due to numerous external and internal factors. 
-          This document is not a guarantee of future performance. Siemens is not liable for any discrepancies or decisions made based on these projections.
-        </footer>
+            style={{
+              position: 'fixed',
+              bottom: 0,
+              left: 0,
+              width: '100%',
+              backgroundColor: '#16152E',
+              color: '#f1f1f1',
+              textAlign: 'center',
+              padding: '10px 20px',
+              fontSize: '12px',
+              zIndex: 1000, 
+              boxShadow: '0px -2px 5px rgba(0, 0, 0, 0.2)', 
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <span style={{ flex: 1, textAlign: 'center' }}>
+              Disclaimer: This tool provides revenue projections solely as an indicative estimate based on simplified calculations. 
+              Actual results may vary significantly due to numerous external and internal factors. 
+              This document is not a guarantee of future performance. Siemens is not liable for any discrepancies or decisions made based on these projections.
+            </span>
+            <button
+              onClick={() => setDisclaimerAcknowledged(true)}
+              style={{
+                marginLeft: '5px',
+                marginRight: '25px',
+                padding: '5px 10px',
+                backgroundColor: '#1d1d2e',
+                color: '#fff',
+                border: '',
+                cursor: 'pointer',
+                fontSize: '12px',
+              }}
+              onMouseEnter={(e) => (e.target.style.backgroundColor = '#1976d1')}
+              onMouseLeave={(e) => (e.target.style.backgroundColor = '#1d1d2e')}
+            >
+              ✓ Acknowledge
+            </button>
+          </footer>
+        )}
       </div>
     </div>
     );

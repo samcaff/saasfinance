@@ -1,6 +1,5 @@
-import ProductSelection from './ProductSelection';
 const calculateARRProjections = (state) => {
-    const { selectedProducts, quarterlyData, globalMargins, productFactors } = state;
+    const { selectedProducts, quarterlyData, globalMargins } = state;
     const calculatedData = {};
     const quarters = Object.keys(quarterlyData);
   
